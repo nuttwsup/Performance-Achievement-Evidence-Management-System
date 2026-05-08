@@ -1,0 +1,19 @@
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #f8f9fa; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+  .top-bar { background: #fff; border-bottom: 4px solid #0d6efd; padding: 10px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  .main-wrapper { display: flex; flex: 1; overflow: hidden; }
+  .sidebar { width: 280px; background: #212529; color: #fff; padding: 15px; overflow-y: auto; }
+  .nav-btn { width: 100%; text-align: left; padding: 10px; background: transparent; border: none; color: #dee2e6; border-radius: 5px; margin-bottom: 5px; transition: 0.2s; }
+  .nav-btn:hover, .nav-btn.active { background: #0d6efd; color: #fff; }
+  .cycle-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; cursor: pointer; color: #dee2e6; border-radius: 5px; font-size: 0.95rem;}
+  .cycle-item:hover, .cycle-item.active { background: #343a40; color: #fff; }
+  .content-area { flex: 1; padding: 25px; overflow-y: auto; }
+  .btn-sub { width: 100%; text-align: left; background: #fff; border: 1px solid #dee2e6; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+  .btn-sub:hover { background: #f8f9fa; border-color: #0d6efd; color: #0d6efd; font-weight: bold; }
+  .sub-item-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .disabled-zone { pointer-events: none; opacity: 0.5; filter: grayscale(100%); }
+  .accordion-button { font-weight: bold; color: #495057; font-size: 1.1rem; }
+  .accordion-button:not(.collapsed) { color: #0d6efd; background-color: #e7f1ff; }
+  .progress-badge { font-size: 0.9rem; min-width: 60px; text-align: center; }
+  .status-icon { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: normal; }
+</style>

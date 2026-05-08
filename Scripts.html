@@ -1,0 +1,541 @@
+<script>
+  let curC = "", curT = "", curId = "", modal;
+  let allCyclesList = []; 
+  const categories = {"c1":"1. การเรียนการสอน", "c2":"2. วิจัย/วิชาการ", "c3":"3. บริการวิชาการ", "c4":"4. ศิลปวัฒนธรรม", "c5":"5. งานบริหาร/อื่นๆ"};
+  const categoryLimits = {"c1":10, "c2":8, "c3":5, "c4":3, "c5":8};
+  const subItems = {
+    "c1": ["1.1 ชั่วโมงสอนขั้นต่ำ", "1.2 แผนการสอน/มคอ.", "1.3 ผลประเมินการสอน", "1.4 อบรมพัฒนาการสอน", "1.5 วิจัยในชั้นเรียน/KM", "1.6 ปรับปรุงการสอน", "1.7 อาจารย์ที่ปรึกษา", "1.8 กิจกรรมนักศึกษา", "1.9 พัฒนาทักษะวิชาชีพ", "1.10 ภาระงานสอนอื่น ๆ"],
+    "c2": ["2.1 ผลงานวิจัย", "2.2 คุณภาพผลงาน", "2.3 บูรณาการวิจัย-สอน", "2.4 การเผยแพร่/ตีพิมพ์", "2.5 จำนวนครั้งตีพิมพ์", "2.6 การนำไปใช้ประโยชน์", "2.7 สิทธิบัตร/อนุสิทธิบัตร", "2.8 ภาระงานวิชาการอื่น"],
+    "c3": ["3.1 บริการวิชาการแก่สังคม", "3.2 รับผิดชอบโครงการ", "3.3 กรรมการโครงการ", "3.4 บูรณาการบริการวิชาการ", "3.5 บริการวิชาการอื่น"],
+    "c4": ["4.1 รับผิดชอบ/กรรมการ", "4.2 เข้าร่วมโครงการ", "4.3 ระบบและกลไก"],
+    "c5": ["5.1 กิจกรรมคณะ/มหาลัย", "5.2 กรรมการประกันคุณภาพ", "5.3 กรรมการ KM", "5.4 บริหารความเสี่ยง", "5.5 กรรมการอื่น ๆ", "5.6 ที่ปรึกษาผลงาน นศ.", "5.7 จิตอาสา/สิ่งแวดล้อม", "5.8 อื่น ๆ"]
+  };
+
+  const criteriaData = { 
+    "1.1": "มีจำนวนชั่วโมงสอนไม่น้อยกว่าภาระงานขั้นต่ำ (รองคณบดี 3,หน.สาขา/หน.งาน 4, อ.ผู้สอน 6)", 
+    "1.2": "1. มีประมวลรายวิชา/แผนการสอน\n2. มีประมวลรายวิชา/แผนการสอนก่อนการเปิดภาคเรียน\n3. มีประมวลรายวิชา/แผนการสอนที่มีเนื้อหาและรูปแบบตรงตามที่กำหนดในกรอบ TQF/เกณฑ์มาตรฐานหลักสูตรระดับปริญญาตรี ปี 2548\n4. มีประมวลรายวิชา/แผนการสอนที่ส่งเสริมทักษะการเรียนรู้ด้วยตนเองและให้ผู้เรียนได้เรียนรู้จากการปฏิบัติทั้งในและนอกห้องเรียนหรือจากการทำวิจัย\n5. มีประมวลรายวิชา/แผนการสอนที่ให้ผู้มีประสบการณ์ทางวิชาการ/วิชาชีพจากหน่วยงานหรือชุมชนภายนอกเข้ามามีส่วนร่วมในกระบวนการเรียน", 
+    "1.3": "มีผลการประเมินความพึงพอใจของผู้เรียนที่มีต่อคุณภาพการจัดการเรียนการสอน ไม่ต่ำกว่า 3.51 จากคะแนนเต็ม 5", 
+    "1.4": "มีการเข้ารับการอบรมทางวิชาการหรือวิชาชีพ เทคนิคการสอนและการวัดผล", 
+    "1.5": "มีการจัดการเรียนรู้ที่พัฒนาจากการวิจัย หรือจากกระบวนการจัดการความรู้เพื่อพัฒนาการเรียนการสอน", 
+    "1.6": "มีการพัฒนาหรือปรับปรุงการจัดการเรียนการสอน กลยุทธ์การสอน หรือการประเมินผลการเรียนรู้ทุกรายวิชา ตามผลการประเมินรายวิชา", 
+    "1.7": "มีผลงานการเป็นอาจารย์ที่ปรึกษา/มีการให้คำปรึกษาทางวิชาการและแนะแนวการใช้ชีวิตแก่นักศึกษา (ทั่วไป)\n1. มีคำสั่งแต่งตั้งเป็นอาจารย์ที่ปรึกษา\n2. มีตารางการให้นักศึกษาเข้าพบเพื่อให้คำปรึกษา\n3. มีการให้คำปรึกษาทางวิชาการและแนะแนวการใช้ชีวิตแก่นักศึกษา\n4. มีการแจ้งข้อมูลข่าวสารที่เป็นประโยชน์ต่อนักศึกษา\n5. มีการนำนักศึกษาเข้าร่วมกิจกรรมเพื่อพัฒนาประสบการณ์ทางวิชาการและทักษะวิชาชีพแก่นักศึกษา", 
+    "1.8": "มีผลงานการเป็นผู้รับผิดชอบโครงการกิจกรรมนักศึกษา/เป็นคณะกรรมการโครงการกิจกรรมนักศึกษา/เป็นอาจารย์ที่ปรึกษาโครงการ/อาจารย์ที่ปรึกษาชมรม (กิจกรรม/โครงการต่างๆ)", 
+    "1.9": "มีการจัดกิจกรรม/โครงการเพื่อพัฒนาประสบการณ์ทางวิชาการหรือทักษะวิชาชีพแก่นักศึกษา", 
+    "1.10": "ภาระงานสอนอื่น ๆ", 
+    "2.1": "มีผลงานวิจัยหรืองานสร้างสรรค์\n1. มีโครงร่างหัวข้องานวิจัย/งานสร้างสรรค์ที่พร้อมนำเสนอ\n2. มีการนำเสนอหัวข้องานวิจัย/งานสร้างสรรค์ตามกระบวนการของมหาวิทยาลัย\n3. ได้รับอนุมัติงบประมาณสนับสนุนโครงการวิจัย/งานสร้างสรรค์\n4. เป็นหัวหน้าโครงการวิจัย/งานสร้างสรรค์ที่ได้รับอนุมัติงบประมาณ\n5. งานวิจัยหรืองานสร้างสรรค์แล้วเสร็จตามเวลาที่กำหนด", 
+    "2.2": "ระดับคุณภาพของผลงานวิชาการ", 
+    "2.3": "มีการบูรณาการกระบวนการวิจัยหรืองานสร้างสรรค์กับการจัดการเรียนการสอน", 
+    "2.4": "มีผลงานการเผยแพร่งานวิจัยหรืองานสร้างสรรค์ในการประชุมวิชาการหรือการตีพิมพ์ในวารสารระดับชาติ/นานาชาติ", 
+    "2.5": "จำนวนครั้งในการเผยแพร่งานวิจัยหรืองานสร้างสรรค์ในการประชุมวิชาการหรือการตีพิมพ์ในวารสารระดับชาติ/นานาชาติ", 
+    "2.6": "มีการนำผลงานวิจัยหรืองานสร้างสรรค์ไปใช้ให้เกิดประโยชน์ และมีการรับรองการใช้ประโยชน์จริงจากหน่วยงานภายนอกหรือชุมชน", 
+    "2.7": "มีการจดสิทธิบัตร/อนุสิทธิบัตร", 
+    "2.8": "ภาระงานวิชาการอื่น ๆ", 
+    "3.1": "มีผลงานการบริการทางวิชาการแก่สังคม", 
+    "3.2": "มีผลงานการเป็นผู้รับผิดชอบโครงการบริการวิชาการแก่สังคม", 
+    "3.3": "เป็นคณะกรรมการโครงการบริการวิชาการแก่สังคม", 
+    "3.4": "มีการบูรณาการงานบริการทางวิชาการแก่สังคม", 
+    "3.5": "งานบริการวิชาการอื่น ๆ", 
+    "4.1": "มีผลงานการเป็นผู้รับผิดชอบ/เป็นคณะกรรมการดำเนินโครงการทำนุบำรุงศิลปวัฒนธรรม", 
+    "4.2": "การเข้าร่วมโครงการทำนุบำรุงศิลปวัฒนธรรม", 
+    "4.3": "การปฏิบัติตามระบบและกลไกการทำนุบำรุงศิลปวัฒนธรรม\n1. มีการบูรณาการงานด้านทำนุบำรุงกิจกรรมศิลปวัฒนธรรมกับการจัดการเรียนการสอน/นักศึกษา\n2. มีการเผยแพร่กิจกรรมหรือบริการด้านทำนุบำรุงศิลปวัฒนธรรมต่อสาธารณชน\n3. มีการประเมินผลความสำเร็จของการบูรณาการงานด้านทำนุบำรุงศิลปวัฒนธรรมกับการจัดการเรียนการสอน/กิจกรรมนักศึกษา\n4. มีการนำผลการประเมินไปปรับปรุงการบูรณาการงานด้านทำนุบำรุงศิลปวัฒนธรรมกับการจัดการเรียนการสอน/กิจกรรมนักศึกษา\n5. มีการกำหนดหรือสร้างมาตรฐานคุณภาพด้านศิลปวัฒนธรรมและมีผลงานเป็นที่ยอมรับในระดับชาติ", 
+    "5.1": "การให้ความร่วมมือเข้าร่วมกิจกรรมของคณะ/มหาวิทยาลัย เช่น การประชุมปฐมนิเทศ ปัจฉิมนิเทศ กฐินพระราชทาน งานกีฬา ไหว้ครู สำคัญทางศาสนา ฯลฯ", 
+    "5.2": "เป็นคณะกรรมการประกันคุณภาพ\n1. มีคำสั่งแต่งตั้งเป็นคณะกรรมการ\n2. มีการเข้าร่วมประชุมคณะกรรมการ\n3. มีผลการปฏิบัติงาน\n4. มีรายงานผลการปฎิบัติงาน\n5. มีการนำผลการประเมิน/ผลการดำเนินงานของปีก่อนมาพัฒนาปรับปรุง", 
+    "5.3": "เป็นคณะกรรมการจัดการความรู้\n1. มีคำสั่งแต่งตั้งเป็นคณะกรรมการ\n2. มีการกำหนดประเด็นความรู้และเป้าหมายของการจัดการความรู้ที่สอดคล้องกับแผนกลยุทธ์ของสถาบัน อย่างน้อยครอบคลุมพันธกิจด้านการผลิตบัณฑิตและด้านการวิจัย\n3. มีการแบ่งปันและแลกเปลี่ยนเรียนรู้จากผู้มีประสบการณ์ตรง\n4. มีการรวบรวมความรู้มาพัฒนาและจัดเก็บอย่างเป็นระบบโดยเผยแพร่เป็นลายลักษณ์อักษร\n5. มีการนำความรู้ที่ได้จากการจัดการความรู้ที่เป็นแนวปฏิบัติที่ดีมาปรับใช้ในการปฏิบัติงานจริง", 
+    "5.4": "เป็นคณะกรรมการบริหารความเสี่ยง\n1. มีคำสั่งแต่งตั้งเป็นคณะกรรมการ\n2. มีการวิเคราะห์และระบุความเสียง\n3. มีการประเมินโอกาสและผลกระทบและจัดลำดับความเสี่ยง\n4. มีการจัดทำแผนบริหารความเสี่ยงและดำเนินตามแผน\n5. มีการติดตาม ประเมินผลและรายงานผล", 
+    "5.5": "เป็นคณะกรรมการอื่น ๆ ตามคำสั่งคณะ/มหาวิทยาลัย", 
+    "5.6": "เป็นอาจารย์ที่ปรึกษาผลงานที่นักศึกษาได้รับรางวัลระดับชาติ/นานาชาติ", 
+    "5.7": "มีผลงานการเป็นผู้รับผิดชอบ/เป็นคณะกรรมการดำเนินโครงการเกี่ยวกับการอนุรักษ์สิ่งแวดล้อม/จิตอาสา/บำเพ็ญประโยชน์", 
+    "5.8": "อื่น ๆ (ผู้ประเมินและผู้รับการประเมินตกลงกันเอง)" 
+  };
+  
+  const evidenceData = { 
+    "1.1": "- ตารางสอน", 
+    "1.2": "- ประมวลรายวิชา/แผนการสอน\n- บันทึกนำส่งประมวลรายวิชา/แผนการสอน\n- ประมวลรายวิชา/แผนการสอนที่ตรงตามเกณฑ์ TQF\n- ประมวลรายวิชา/แผนการสอน และผลงาน/ชิ้นงานของนักศึกษา", 
+    "1.3": "- ผลการประเมินความพึงพอใจ", 
+    "1.4": "- แบบรายงานผลการเข้ารับการอบรม", 
+    "1.5": "- แผนการสอน\n- ผลงานวิจัย/รายงานผลการจัดการความรู้/เอกสารประกอบการสอน", 
+    "1.6": "- ตารางสอน\n- ผลการประเมินรายวิชา\n- ประมวลรายวิชา/แผนการสอน", 
+    "1.7": "- คำสั่งแต่งตั้ง อ.ที่ปรึกษา\n- ตารางเวลาการเข้าพบ\n- แบบบันทึกการให้คำปรึกษา/Print out จาก Web งานทะเบียน\n- หนังสือเวียนแจ้ง น.ศ./Print out จาก Web งานทะเบียน\n- หลักฐานแสดงการจัดกิจกรรม", 
+    "1.8": "- คำสั่งแต่งตั้งให้ปฏิบัติหน้าที่/ผลงานที่เกี่ยวข้อง", 
+    "1.9": "- หลักฐานแสดงการจัดกิจกรรม/โครงการ", 
+    "2.1": "- สำเนาเอกสารที่เกี่ยวข้อง", 
+    "2.2": "- เอกสารประกอบการสอน\n- เอกสารหลักฐานที่เกี่ยวข้อง", 
+    "2.3": "- งานวิจัย/งานสร้างสรรค์ที่ระบุความเชื่อมโยงกับประมวลรายวิชา/แผนการสอน", 
+    "2.4": "- สำเนาเอกสารที่เกี่ยวข้อง", 
+    "2.5": "- สำเนาเอกสารที่เกี่ยวข้อง", 
+    "2.6": "- หนังสือรับรองจากหน่วยงานภายนอกหรือชุมชน", 
+    "2.7": "- หนังสือรับรอง", 
+    "3.1": "- หนังสือเชิญเป็นวิทยากร/คำสั่งแต่งตั้งเป็นวิทยากร", 
+    "3.2": "- คำสั่งแต่งตั้ง", 
+    "3.3": "- คำสั่งแต่งตั้ง/หลักฐานการเข้าร่วมประชุม", 
+    "3.4": "- ประมวลรายวิชา/แผนการสอนและเอกสารที่เกี่ยวข้อง", 
+    "4.1": "- คำสั่งแต่งตั้ง ภาพถ่าย", 
+    "4.2": "- หลักฐานการเข้าร่วมโครงการ ภาพถ่าย", 
+    "4.3": "- แผนการสอน, โครงการกิจกรรมนักศึกษา\n- สำเนาข่าวจากหน้า นสพ./Web/อื่น ๆ\n- แผนการสอน/กิจกรรมนักศึกษา พร้อมผลการประเมินความสำเร็จ\n- แผนการปรับปรุง และผลการปรับปรุง\n- หลักฐานที่เกี่ยวข้อง", 
+    "5.1": "- แบบบันทึกลายมือชื่อผู้เข้าร่วมกิจกรรม/หลักฐานอื่น ๆ", 
+    "5.2": "- คำสั่งแต่งตั้ง\n- รายงานการประชุม\n- ผลการปฏิบัติงาน\n- รายงานผลการปฏิบัติ\n- ผลการพัฒนาปรับปรุง", 
+    "5.3": "- คำสั่งแต่งตั้ง\n- แผนการจัดการความรู้\n- ผลการปฏิบัติงาน\n- รายงานผลการปฏิบัติ\n- ผลการพัฒนาปรับปรุง", 
+    "5.4": "- คำสั่งแต่งตั้ง\n- ผลการวิเคราะห์\n- ผลการประเมินและจัดลำดับ\n- แผนบริหารความเสี่ยง\n- รายงานผลการปฏิบัติ", 
+    "5.5": "- คำสั่งแต่งตั้ง", 
+    "5.6": "- หนังสือแจ้ง/รายงานผลจากหน่วยงานผู้จัด/สื่อสาธารณะ", 
+    "5.7": "- คำสั่งแต่งตั้ง/หนังสือเชิญเข้าร่วมกิจกรรม ฯลฯ" 
+  };
+
+  function initSystem() { 
+      const modalEl = document.getElementById('mgrModal');
+      if(modalEl) {
+          modal = new bootstrap.Modal(modalEl); 
+      } else {
+          console.error("ไม่พบ Modal สำหรับฟอร์มกรอกข้อมูล กรุณาตรวจสอบไฟล์ Form_UI.html");
+      }
+      checkStatus(); 
+  }
+
+  function showLoading(msg) {
+      Swal.fire({ title: msg, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+  }
+
+  function showPage(pageId) {
+      ['pageEmpty', 'pageProfile', 'pageMain'].forEach(id => document.getElementById(id).classList.add('d-none'));
+      document.getElementById(pageId).classList.remove('d-none');
+  }
+
+  function checkStatus() { 
+      showLoading("กำลังตรวจสอบระบบ...");
+      google.script.run.withSuccessHandler(res => {
+          const btnSetup = document.getElementById('btnSetup');
+          const sidebar = document.getElementById('sidebar');
+          const btnAddCycle = document.getElementById('btnAddCycle');
+          
+          if (!res.installed) {
+              btnSetup.disabled = false; btnSetup.innerHTML = '<i class="bi bi-tools"></i> ติดตั้งระบบ';
+              sidebar.classList.add('disabled-zone'); showPage('pageEmpty');
+              Swal.fire({ title: 'ยินดีต้อนรับสู่ระบบ', html: '1. ติดตั้งระบบ<br>2. กรอกประวัติ<br>3. เพิ่มรอบ', icon: 'info' });
+          } else {
+              btnSetup.disabled = true; btnSetup.innerHTML = '<i class="bi bi-check-circle-fill"></i> ติดตั้งแล้ว';
+              sidebar.classList.remove('disabled-zone');
+              
+              if (!res.hasProfile) {
+                  Swal.close(); showProfile(); btnAddCycle.disabled = true; document.getElementById('cycleList').classList.add('disabled-zone');
+              } else {
+                  btnAddCycle.disabled = false; document.getElementById('cycleList').classList.remove('disabled-zone');
+                  loadCycles(); if(curC === "") showPage('pageEmpty');
+              }
+          }
+      }).checkSystemStatus(); 
+  }
+
+  function toggleOther(selId, otherId) {
+      let sel = document.getElementById(selId); let other = document.getElementById(otherId);
+      if (sel.value === 'อื่นๆ') { other.classList.remove('d-none'); other.required = true; } 
+      else { other.classList.add('d-none'); other.required = false; }
+  }
+
+  function setDropdownVal(selId, otherId, val) {
+      if(!val) return;
+      let sel = document.getElementById(selId); let other = document.getElementById(otherId);
+      let exists = Array.from(sel.options).some(opt => opt.value === val);
+      if(exists) { sel.value = val; other.classList.add('d-none'); } 
+      else { sel.value = 'อื่นๆ'; other.value = val; other.classList.remove('d-none'); }
+  }
+
+  function toggleProfileEditMode(isEdit) {
+      if(isEdit) {
+          document.getElementById('profileDisplayView').classList.add('d-none');
+          document.getElementById('profileEditView').classList.remove('d-none');
+      } else {
+          document.getElementById('profileDisplayView').classList.remove('d-none');
+          document.getElementById('profileEditView').classList.add('d-none');
+      }
+  }
+
+  function showProfile() { 
+    showPage('pageProfile');
+    document.getElementById('profileDisplayView').classList.add('d-none');
+    document.getElementById('profileEditView').classList.add('d-none');
+    document.getElementById('profileAlert').classList.add('d-none');
+    
+    google.script.run.withSuccessHandler(d => { 
+      if(d && d.firstName) { 
+        document.getElementById('dispFullName').innerText = d.fullName;
+        document.getElementById('dispPos').innerText = d.position;
+        document.getElementById('dispLevel').innerText = d.level;
+        document.getElementById('dispAff').innerText = d.affiliation;
+        
+        if (d.profilePicBase64) {
+            document.getElementById('dispProfilePicArea').innerHTML = `<img src="${d.profilePicBase64}" alt="Profile Picture" class="rounded-circle shadow-sm border border-3 border-primary" style="width: 140px; height: 140px; object-fit: cover;">`;
+        } else {
+            document.getElementById('dispProfilePicArea').innerHTML = `<i class="bi bi-person-circle text-secondary" style="font-size: 6rem;"></i>`;
+        }
+        
+        document.getElementById('oldPfPicUrl').value = d.profilePic || "";
+
+        setDropdownVal('pfTitleSel', 'pfTitleOther', d.title);
+        document.getElementById('pfF').value = d.firstName; 
+        document.getElementById('pfL').value = d.lastName; 
+        setDropdownVal('pfPosSel', 'pfPosOther', d.position); 
+        setDropdownVal('pfLevelSel', 'pfLevelOther', d.level); 
+        setDropdownVal('pfAffSel', 'pfAffOther', d.affiliation);
+        
+        toggleProfileEditMode(false);
+        document.getElementById('btnCancelEdit').classList.remove('d-none'); 
+      } else {
+        document.getElementById('profileAlert').classList.remove('d-none');
+        toggleProfileEditMode(true);
+        document.getElementById('btnCancelEdit').classList.add('d-none'); 
+      }
+    }).getProfileData();
+  }
+
+  async function saveProfile() { 
+    const picInput = document.getElementById('pfPic');
+    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    
+    if (picInput.files.length > 0) {
+        let file = picInput.files[0];
+        if (file.size > MAX_SIZE) {
+            return Swal.fire('ไฟล์ใหญ่ไป!', `รูปโปรไฟล์ต้องมีขนาดไม่เกิน 5 MB<br>(ไฟล์ของท่านมีขนาด ${(file.size/1024/1024).toFixed(2)} MB)`, 'warning');
+        }
+        let ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'jpg' && ext !== 'jpeg' && ext !== 'png') {
+            return Swal.fire('ไฟล์ผิดประเภท!', 'ระบบรองรับเฉพาะไฟล์รูปภาพนามสกุล <b>.jpg, .jpeg หรือ .png</b> เท่านั้นครับ', 'error');
+        }
+    }
+
+    let tVal = document.getElementById('pfTitleSel').value === 'อื่นๆ' ? document.getElementById('pfTitleOther').value : document.getElementById('pfTitleSel').value;
+    let pVal = document.getElementById('pfPosSel').value === 'อื่นๆ' ? document.getElementById('pfPosOther').value : document.getElementById('pfPosSel').value;
+    let lvVal = document.getElementById('pfLevelSel').value === 'อื่นๆ' ? document.getElementById('pfLevelOther').value : document.getElementById('pfLevelSel').value;
+    let affVal = document.getElementById('pfAffSel').value === 'อื่นๆ' ? document.getElementById('pfAffOther').value : document.getElementById('pfAffSel').value;
+    
+    const f = { 
+        title: tVal, 
+        firstName: document.getElementById('pfF').value, 
+        lastName: document.getElementById('pfL').value, 
+        position: pVal, 
+        level: lvVal, 
+        affiliation: affVal,
+        oldPicUrl: document.getElementById('oldPfPicUrl').value
+    };
+
+    if(!f.firstName) return Swal.fire('แจ้งเตือน', 'กรุณากรอกชื่อก่อนบันทึก', 'warning');
+    
+    if (picInput.files.length > 0) {
+        showLoading("กำลังเตรียมไฟล์รูปภาพ...");
+        let file = picInput.files[0];
+        let base64 = await toBase64(file);
+        f.picBase64 = base64.split(',')[1];
+        f.picName = file.name;
+        f.picMime = file.type;
+    } else {
+        showLoading("กำลังบันทึกประวัติ...");
+    }
+
+    google.script.run.withSuccessHandler(() => { 
+        Swal.fire('สำเร็จ','บันทึกประวัติแล้ว','success'); 
+        document.getElementById('pfPic').value = ""; 
+        showProfile(); 
+        checkStatus(); 
+    }).saveProfileData(f);
+  }
+
+  function formatCycleName(c) {
+      if (c.includes("รอบ 1") && !c.includes("(1 มิ.ย.")) return c + " (1 มิ.ย. - 30 พ.ย.)";
+      if (c.includes("รอบ 2") && !c.includes("(1 ธ.ค.")) return c + " (1 ธ.ค. - 31 พ.ค.)";
+      return c;
+  }
+
+  function loadCycles() { 
+      google.script.run.withSuccessHandler(data => {
+          Swal.close(); window.allCyclesList = data; let html = ""; 
+          data.forEach(c => { 
+              let disp = formatCycleName(c);
+              html += `<div class="cycle-item ${c===curC?'active':''}" onclick="selectCycle('${c}')"><span>${disp}</span><i class="bi bi-trash text-danger" onclick="delCycle('${c}',event)"></i></div>`; 
+          });
+          document.getElementById('cycleList').innerHTML = html;
+      }).getCycleList(); 
+  }
+
+  function selectCycle(c) { 
+      curC = c; let disp = formatCycleName(c);
+      document.getElementById('cycleTitle').innerHTML = `<i class="bi bi-journal-bookmark-fill"></i> รอบ: ${disp}`;
+      showPage('pageMain'); renderAccordion(); loadCycles();
+  }
+
+  function renderAccordion() {
+    let html = "";
+    Object.keys(subItems).forEach(key => {
+      let items = ""; 
+      subItems[key].forEach(it => {
+        let tid = it.split(" ")[0];
+        let pdfBtn = (tid === "4.2" || tid === "5.1") ? `<button class="btn btn-outline-danger btn-sm" onclick="exportCombinedPDF('${tid}')" title="สร้าง PDF รวม"><i class="bi bi-file-pdf-fill"></i></button>` : "";
+        items += `
+        <div class="sub-item-row d-flex gap-2 mb-2">
+            <div class="btn btn-sub text-start flex-grow-1 d-flex justify-content-between align-items-center" onclick="openMgr('${tid}','${it}')">
+                <span>${it}</span><span id="st-${tid}" class="status-icon"><i class="bi bi-x-circle text-danger"></i></span>
+            </div>
+            ${pdfBtn}
+            <button class="btn btn-outline-primary btn-sm" onclick="openTargetFolder('${tid}', false)"><i class="bi bi-folder-fill"></i></button>
+        </div>`;
+      });
+      html += `
+      <div class="accordion-item">
+          <h2 class="accordion-header d-flex">
+              <button class="accordion-button collapsed flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#${key}">
+                  <div class="w-100 d-flex justify-content-between align-items-center me-2">
+                      <span>${categories[key]}</span><span id="badge-${key}" class="badge bg-secondary progress-badge">0/${categoryLimits[key]}</span>
+                  </div>
+              </button>
+              <button class="btn btn-light border text-primary px-3" onclick="openTargetFolder('${key}', true)"><i class="bi bi-folder-fill"></i></button>
+          </h2>
+          <div id="${key}" class="accordion-collapse collapse"><div class="accordion-body bg-light">${items}</div></div>
+      </div>`;
+    });
+    document.getElementById('accordion').innerHTML = html; updateStatus();
+  }
+
+  function updateStatus() { 
+      google.script.run.withSuccessHandler(ids => { 
+          document.querySelectorAll('.status-icon').forEach(el => el.innerHTML = '<i class="bi bi-x-circle text-danger"></i>');
+          ids.forEach(id => { let el = document.getElementById("st-"+id); if(el) el.innerHTML='<i class="bi bi-check-circle-fill text-success"></i>'; }); 
+          for (let catId in categoryLimits) {
+              let catNum = catId.replace("c", "");
+              let count = ids.filter(k => k.startsWith(catNum + ".")).length;
+              let badge = document.getElementById("badge-" + catId);
+              if(badge) { badge.innerText = `${count}/${categoryLimits[catId]}`; badge.className = count === categoryLimits[catId] ? "badge bg-success progress-badge" : "badge bg-secondary progress-badge"; }
+          }
+      }).getExistingKpis(curC); 
+  }
+
+  function openMgr(id, txt) { 
+    curId = id; curT = txt; 
+    document.getElementById('modalTitle').innerText = "บันทึกข้อมูล: " + txt;
+    document.getElementById('criteriaBox').innerText = criteriaData[id] || "-";
+    document.getElementById('evidenceReq').innerText = evidenceData[id] || "-";
+    
+    document.getElementById('editId').value = "";
+    document.getElementById('oldFileUrl').value = "";
+    document.getElementById('note').value = ""; 
+    document.getElementById('file').value = "";
+    if(document.getElementById('activityDate')) document.getElementById('activityDate').value = "";
+    
+    if(id === "4.2" || id === "5.1") {
+        document.getElementById('dateArea').classList.remove('d-none');
+        document.getElementById('file').setAttribute('accept', '.jpeg, .jpg, .png');
+        document.getElementById('fileHelp').innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> <b>บังคับ:</b> หัวข้อนี้รองรับเฉพาะไฟล์ภาพ <b>.jpg / .jpeg / .png</b> เท่านั้น (ไม่เกิน 5 MB/รูป)';
+    } else {
+        document.getElementById('dateArea').classList.add('d-none');
+        document.getElementById('file').setAttribute('accept', '.jpeg, .jpg, .png, .pdf, .csv, .docx, .xls, .xlsx');
+        document.getElementById('fileHelp').innerHTML = '<i class="bi bi-info-circle"></i> สามารถลากคลุม หรือกด Ctrl ค้าง เพื่อเลือกหลายไฟล์พร้อมกันได้ (ขนาดไม่เกิน 5 MB ต่อไฟล์)';
+    }
+
+    loadHistory(); 
+    if(modal) modal.show();
+  }
+
+  async function save() {
+    const fileInput = document.getElementById('file');
+    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
+    for (let i = 0; i < fileInput.files.length; i++) {
+        let f = fileInput.files[i];
+        if (f.size > MAX_SIZE) {
+            return Swal.fire('ไฟล์ใหญ่ไป!', `ไฟล์ "${f.name}" มีขนาดเกิน 5 MB กรุณาย่อขนาดก่อนครับ`, 'warning');
+        }
+        if (curId === "4.2" || curId === "5.1") {
+            let ext = f.name.split('.').pop().toLowerCase();
+            if (ext !== 'jpg' && ext !== 'jpeg' && ext !== 'png') {
+                return Swal.fire('ไฟล์ผิดประเภท!', `หัวข้อนี้บังคับใช้เฉพาะไฟล์รูปภาพ <b>.jpg, .jpeg หรือ .png</b> เท่านั้นครับ<br>(ไฟล์ "${f.name}" ไม่ถูกต้อง)`, 'error');
+            }
+        }
+    }
+
+    const payload = { 
+        recId: document.getElementById('editId').value, 
+        kpiId: curId, topic: curT, cycle: curC, 
+        note: document.getElementById('note').value, 
+        activityDate: document.getElementById('activityDate') ? document.getElementById('activityDate').value : '', 
+        oldFileUrl: document.getElementById('oldFileUrl').value 
+    };
+    
+    if(!payload.note) return Swal.fire('เตือน','กรุณากรอกรายละเอียด','warning');
+    if((curId === "4.2" || curId === "5.1") && !payload.activityDate) return Swal.fire('ผิดพลาด', 'กรุณาระบุวันที่ทำกิจกรรม', 'error');
+
+    if (fileInput.files.length > 0) {
+        let uploadedFiles = [];
+        for (let i = 0; i < fileInput.files.length; i++) {
+            let f = fileInput.files[i];
+            showLoading(`กำลังอัปโหลดไฟล์ ${i+1}/${fileInput.files.length}...\n(โปรดรอสักครู่)`);
+            let base64 = await toBase64(f);
+            let fData = { name: f.name, type: f.type, base64: base64.split(',')[1] };
+            
+            try {
+                let uploadRes = await new Promise((resolve, reject) => {
+                    google.script.run
+                    .withSuccessHandler(res => resolve(res))
+                    .withFailureHandler(err => reject(err))
+                    .uploadSingleFile(fData, curC, curT);
+                });
+                uploadedFiles.push(uploadRes);
+            } catch (e) {
+                return Swal.fire('ผิดพลาด', 'อัปโหลดไฟล์ไม่สำเร็จ: ' + e, 'error');
+            }
+        }
+        payload.uploadedFiles = uploadedFiles;
+        send(payload);
+    } else { 
+        if(!payload.recId) return Swal.fire('ผิดพลาด', 'กรุณาแนบไฟล์ผลงาน', 'error');
+        send(payload); 
+    }
+  }
+
+  const toBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader(); reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error);
+  });
+
+  function send(p) { 
+      showLoading("กำลังบันทึกลงฐานข้อมูล...");
+      google.script.run.withSuccessHandler(res => { 
+          if(res.success){ 
+              // 🚩 แจ้งเตือนดักทางสำหรับ 4.2 และ 5.1 ให้กดสร้าง PDF
+              if (curId === "4.2" || curId === "5.1") {
+                  Swal.fire({
+                      title: 'อัปโหลดรูปสำเร็จ!',
+                      html: 'ระบบบันทึกรูปภาพเรียบร้อยแล้ว<br><br><b class="text-danger">⚠️ อย่าลืม!</b> กรุณากดปุ่ม <b class="text-danger"><i class="bi bi-file-pdf-fill"></i> PDF (กิจกรรมนี้)</b> ในรายการประวัติด้านล่าง เพื่อให้ระบบจัดหน้าเอกสารรายงานด้วยครับ',
+                      icon: 'success',
+                      confirmButtonText: 'รับทราบ!'
+                  });
+              } else {
+                  Swal.fire('สำเร็จ', res.message, 'success'); 
+              }
+              
+              loadHistory(); 
+              updateStatus(); 
+              
+              document.getElementById('editId').value = "";
+              document.getElementById('oldFileUrl').value = "";
+              document.getElementById('note').value = "";
+              if(document.getElementById('activityDate')) document.getElementById('activityDate').value = "";
+              document.getElementById('file').value = ""; 
+          } 
+          else { Swal.fire('ผิดพลาด',res.message || res.error,'error'); }
+      }).saveRecord(p);
+  }
+
+  function loadHistory() { 
+      document.getElementById('history').innerHTML = "กำลังโหลด..."; 
+      google.script.run.withSuccessHandler(data => {
+          let html = ""; 
+          data.forEach(r => {
+              let viewBtn = "";
+              if (r.fileUrl) {
+                  let urls = r.fileUrl.split(" || ");
+                  urls.forEach((u, idx) => {
+                      if(u.trim()) viewBtn += `<a href="${u.trim()}" target="_blank" class="btn btn-sm btn-outline-primary me-1 mb-1"><i class="bi bi-file-earmark"></i> ไฟล์ ${idx+1}</a>`;
+                  });
+              }
+              
+              let exportSingleBtn = (curId === "4.2" || curId === "5.1") ? `<button class="btn btn-outline-danger btn-sm me-1 mb-1" onclick="exportSinglePDF('${r.id}')"><i class="bi bi-file-pdf-fill"></i> PDF (กิจกรรมนี้)</button>` : "";
+
+              html += `<div class="card mb-2 p-2 shadow-sm"><div class="d-flex justify-content-between align-items-center"><div><strong>${r.note}</strong><br><small class="text-muted"><i class="bi bi-clock"></i> ${r.date}</small></div>
+              <div><button class="btn btn-outline-warning btn-sm me-1 mb-1" onclick="editItem('${r.id}','${r.note}', '${r.fileUrl}')"><i class="bi bi-pencil-square"></i> แก้ไข</button>${viewBtn}${exportSingleBtn}<button class="btn btn-outline-danger btn-sm mb-1" onclick="delRec('${r.id}')"><i class="bi bi-trash"></i> ลบ</button></div></div></div>`;
+          });
+          document.getElementById('history').innerHTML = html || "<small class='text-muted'>ไม่มีประวัติอัปโหลด</small>";
+      }).getRecords(curId, curC);
+  }
+
+  function editItem(id, note, fileUrl) {
+      document.getElementById('editId').value = id;
+      document.getElementById('oldFileUrl').value = fileUrl;
+      let cleanNote = note, dateVal = "";
+      let match = note.match(/\(วันที่:\s*(.*?)\)/);
+      if(match) { dateVal = match[1]; cleanNote = note.replace(match[0], "").trim(); }
+      document.getElementById('note').value = cleanNote;
+      if(document.getElementById('activityDate')) document.getElementById('activityDate').value = dateVal;
+      Swal.fire({toast:true, position:'top-end', title:'ดึงข้อมูลมาแก้ไขแล้ว\n(หากไม่อัปโหลดใหม่ จะใช้ไฟล์เดิม)', icon:'info', showConfirmButton:false, timer:4000});
+  }
+
+  function delRec(id) { 
+      Swal.fire({ title: 'ยืนยันลบ?', text: "ลบออกจากระบบ และย้ายไฟล์ลงถังขยะ", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((r) => { 
+          if (r.isConfirmed) { 
+              showLoading("กำลังลบ..."); 
+              google.script.run.withSuccessHandler(()=>{ Swal.fire({title:'ลบเรียบร้อย', icon:'success'}); loadHistory(); updateStatus(); }).deleteRecord(id, curC); 
+          } 
+      });
+  }
+  
+  function runSetup() { 
+      showLoading("กำลังติดตั้งระบบ...");
+      google.script.run.withSuccessHandler(res => { 
+          if(!res.success) Swal.fire('แจ้งเตือน', res.message, 'info'); else Swal.fire('ติดตั้งสำเร็จ', res.message, 'success'); checkStatus(); 
+      }).initialSetup(); 
+  }
+  
+  function doReset() { 
+      Swal.fire({title:'ล้างระบบ?', text:'การตั้งค่าทั้งหมดจะหายไป', icon:'warning', showCancelButton:true, confirmButtonColor:'#d33'}).then(r=>{
+          if(r.isConfirmed) { showLoading("กำลังล้างข้อมูล..."); google.script.run.withSuccessHandler(()=>{ Swal.fire('ล้างระบบสำเร็จ', '', 'success'); curC = ""; document.getElementById('cycleList').innerHTML = ""; checkStatus(); }).resetSystem(); }
+      });
+  }
+  
+  function addCycle() {
+      let yrOpts = ''; let curYr = new Date().getFullYear() + 543;
+      for(let i=2565; i<=2575; i++) yrOpts += `<option value="${i}" ${i===curYr?'selected':''}>${i}</option>`;
+      Swal.fire({ 
+          title: 'สร้างปีการศึกษาใหม่', 
+          html: `
+            <div class="mb-3 text-start"><label class="form-label fw-bold">ปีการศึกษา</label><select id="sYr" class="form-select">${yrOpts}</select></div>
+            <div class="text-start mb-3"><label class="form-label fw-bold">เลือกรอบที่ต้องการเพิ่ม</label><div class="d-flex gap-3"><div class="form-check"><input class="form-check-input" type="checkbox" id="chkR1" checked><label class="form-check-label" for="chkR1">รอบ 1</label></div><div class="form-check"><input class="form-check-input" type="checkbox" id="chkR2" checked><label class="form-check-label" for="chkR2">รอบ 2</label></div></div></div>`, 
+          showCancelButton:true, confirmButtonText: '<i class="bi bi-plus-circle"></i> ยืนยัน',
+          preConfirm: () => {
+              const year = document.getElementById('sYr').value; const r1 = document.getElementById('chkR1').checked; const r2 = document.getElementById('chkR2').checked;
+              if(!r1 && !r2) return Swal.showValidationMessage('เลือกรอบอย่างน้อย 1 รอบ');
+              let dups = [];
+              if(r1 && window.allCyclesList && window.allCyclesList.includes(year + " รอบ 1")) dups.push("รอบ 1");
+              if(r2 && window.allCyclesList && window.allCyclesList.includes(year + " รอบ 2")) dups.push("รอบ 2");
+              if(dups.length > 0) return Swal.showValidationMessage(`มี ${dups.join(" และ ")} ของปี ${year} อยู่แล้ว`);
+              let rounds = [];
+              if(r1) rounds.push({n: year + " รอบ 1", f: "รอบ 1 (1 มิ.ย.-30พ.ย.)"}); if(r2) rounds.push({n: year + " รอบ 2", f: "รอบ 2 (1 ธ.ค.-31พ.ค.)"});
+              return { year, rounds };
+          }
+      }).then(r => { 
+          if(r.isConfirmed){ 
+              showLoading("กำลังสร้างโฟลเดอร์..."); 
+              google.script.run.withSuccessHandler(res=>{ if(res.success){ Swal.fire('สำเร็จ',res.message,'success'); loadCycles(); } else { Swal.fire('ผิดพลาด',res.message,'error'); } }).addNewCycle(r.value.year, r.value.rounds); 
+          } 
+      });
+  }
+
+  function delCycle(c, e) { 
+      e.stopPropagation(); 
+      Swal.fire({title:'ลบรอบการประเมิน?', text:`ลบรอบ ${c} เฉพาะหน้าเว็บ`, icon:'warning', showCancelButton:true, confirmButtonColor:'#d33'}).then(r=>{ 
+          if(r.isConfirmed){ showLoading("กำลังลบ..."); google.script.run.withSuccessHandler(()=>{ Swal.fire('ลบรอบสำเร็จ', '', 'success'); if(curC === c) { curC = ""; showPage('pageEmpty'); } loadCycles(); }).deleteCycle(c); }
+      }); 
+  }
+  
+  function openTargetFolder(targetId, isMainCat) {
+      if(!curC) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกรอบก่อน', 'warning');
+      let newTab = window.open('about:blank', '_blank'); newTab.document.write('<h3 style="text-align:center; margin-top:20%; color:#0d6efd;">⏳ กำลังเปิดโฟลเดอร์...</h3>');
+      google.script.run.withSuccessHandler(res => { if(res.success) newTab.location.href = res.url; else { newTab.close(); Swal.fire('ผิดพลาด', res.message, 'error'); } }).getSpecificFolderUrl(curC, targetId, isMainCat);
+  }
+
+  function exportCombinedPDF(targetId) {
+      if(!curC) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกรอบก่อน', 'warning');
+      let newTab = window.open('about:blank', '_blank'); newTab.document.write('<h3 style="text-align:center; margin-top:20%; color:#dc3545;">⏳ กำลังสร้าง PDF รวมรูปภาพ...</h3>');
+      google.script.run.withSuccessHandler(res => { if(res.success) newTab.location.href = res.url; else { newTab.close(); Swal.fire('ผิดพลาด', res.message||res.error, 'error'); } }).exportPDF(targetId, curC);
+  }
+
+  function exportSinglePDF(recId) {
+      if(!curC) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกรอบก่อน', 'warning');
+      let newTab = window.open('about:blank', '_blank'); newTab.document.write('<h3 style="text-align:center; margin-top:20%; color:#dc3545;">⏳ กำลังสร้าง PDF เฉพาะกิจกรรมนี้...</h3>');
+      google.script.run.withSuccessHandler(res => { 
+          if(res.success) newTab.location.href = res.url; 
+          else { newTab.close(); Swal.fire('ผิดพลาด', res.message||res.error, 'error'); } 
+      }).exportSinglePDF(recId, curId, curC);
+  }
+
+  function exportCover() { 
+      if(!curC) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกรอบก่อน', 'warning');
+      let newTab = window.open('about:blank', '_blank'); newTab.document.write('<h3 style="text-align:center; margin-top:20%; color:#0d6efd;">⏳ กำลังสร้างหน้าปกนำส่ง...</h3>');
+      google.script.run.withSuccessHandler(res => { if(res.success) newTab.location.href = res.url; else { newTab.close(); Swal.fire('ผิดพลาด', res.message, 'error'); } }).generateCoverPDF(curC); 
+  }
+</script>
